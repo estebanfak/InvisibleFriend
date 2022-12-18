@@ -40,4 +40,14 @@ public class PlayerController {
         playerService.revert();
         return ResponseEntity.ok(Messages.REVERTED);
     }
+    @PostMapping("/modify/{id}")
+    public ResponseEntity<?> modifyEmail(@PathVariable long id,
+                                          @RequestParam String email){
+        return ResponseEntity.ok(playerService.modifyEmail(id, email));
+    }
+    @PostMapping("/resend/{id}")
+    public ResponseEntity<?> resendEmail(@PathVariable long id){
+        playerService.resendEmail(id);
+        return ResponseEntity.ok("Email sent successfully");
+    }
 }

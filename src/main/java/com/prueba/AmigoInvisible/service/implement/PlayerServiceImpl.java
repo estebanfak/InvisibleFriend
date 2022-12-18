@@ -1,6 +1,7 @@
 package com.prueba.AmigoInvisible.service.implement;
 
 import com.prueba.AmigoInvisible.constants.Messages;
+import com.prueba.AmigoInvisible.dto.PlayerDto;
 import com.prueba.AmigoInvisible.entity.Player;
 import com.prueba.AmigoInvisible.repository.PlayerRepository;
 import com.prueba.AmigoInvisible.service.EmailSenderService;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -20,16 +22,16 @@ public class PlayerServiceImpl implements PlayerService {
     private EmailSenderService emailSenderService;
 
     @Override
-    public List<Player> getAllPlayers() {
-        return playerRepository.findAll();
+    public List<PlayerDto> getAllPlayers() {
+        return playerRepository.findAll().stream().map(PlayerDto::new).collect(Collectors.toList());
     }
     @Override
-    public Player getPlayerByName(String name) {
-        return playerRepository.findByName(name).orElseThrow(RuntimeException::new);
+    public PlayerDto getPlayerByName(String name) {
+        return new PlayerDto(playerRepository.findByName(name).orElseThrow(RuntimeException::new));
     }
     @Override
-    public Player addPlayer(Player player) {
-        return playerRepository.save(player);
+    public PlayerDto addPlayer(Player player) {
+        return new PlayerDto(playerRepository.save(player));
     }
     @Override
     public String deletePlayer(String name) {
@@ -57,7 +59,7 @@ public class PlayerServiceImpl implements PlayerService {
             }
             setDBAndSendEmail(player);
         }
-        revert();
+//        revert();
     }
     @Override
     public void revert() {
@@ -66,6 +68,17 @@ public class PlayerServiceImpl implements PlayerService {
             player.setFriendToGift(null);
             playerRepository.save(player);
         }
+    }
+    @Override
+    public PlayerDto modifyEmail(long id, String email) {
+        Player player = playerRepository.findById(id).orElseThrow(RuntimeException::new);
+        player.setEmail(email);
+        return new PlayerDto(playerRepository.save(player));
+    }
+    @Override
+    public void resendEmail(long id) {
+        Player player = playerRepository.findById(id).orElseThrow(RuntimeException::new);
+        sendEmail(player);
     }
 
     private void setDBAndSendEmail(Player player){
